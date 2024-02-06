@@ -8,6 +8,13 @@ import kotlin.io.path.readLines
  */
 fun readInput(name: String) = Path("src/$name.txt").readLines()
 
+fun measureRun(name: String, block: () -> Unit) {
+    val start = System.currentTimeMillis()
+    block()
+    val end = System.currentTimeMillis()
+    println("$name: ${end - start}ms")
+}
+
 /**
  * Converts string to md5 hash.
  */
@@ -18,4 +25,4 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
 /**
  * The cleaner shorthand for printing output.
  */
-fun Any?.println() = println(this)
+fun Any?.printIt() = println(this)
