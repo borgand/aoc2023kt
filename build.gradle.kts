@@ -32,3 +32,11 @@ tasks.register<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("jarD
     from(sourceSets.main.get().output)
     configurations = listOf(project.configurations.runtimeClasspath.get())
 }
+tasks.register<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("jarDay18") {
+    archiveBaseName.set("Day18")
+    manifest {
+        attributes["Main-Class"] = "Day18Kt"
+    }
+    from(sourceSets.main.get().output)
+    configurations = listOf(project.configurations.runtimeClasspath.get())
+}
