@@ -1,24 +1,5 @@
 import java.util.PriorityQueue
 
-enum class Direction(val step: Pair<Int, Int>){
-    U( 0 to -1),
-    D(0 to 1),
-    L(-1 to 0),
-    R(1 to 0);
-
-    fun opposite():Direction{
-        return when(this){
-            U -> D
-            D -> U
-            L -> R
-            R -> L
-        }
-    }
-    fun move(pos: Pair<Int,Int>):Pair<Int,Int>{
-        return Pair(pos.first + step.first, pos.second + step.second)
-    }
-}
-
 class Node{
     val pos:Pair<Int,Int>
     val path:List<Direction>
@@ -299,9 +280,6 @@ fun main() {
         return map.minimalHeatLoss()
     }
 
-    fun part2(input: List<String>): Int {
-        return input.size
-    }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day17_test")
