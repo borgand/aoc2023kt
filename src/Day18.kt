@@ -1,107 +1,69 @@
-data class Rule(val dir:Direction, val len:Int, val colour:String)
-data class DigPlan(val rules:List<String>){
-    val ruleList = mutableListOf<Rule>()
-    val dirList = mutableListOf<Direction>()
-    var path:List<Pair<Int,Int>> = listOf(0 to 0)
-    var innerTiles = mutableSetOf<Pair<Int,Int>>()
-    var tileCount = 0
-
-
-
-    fun parseRules(){
-        for(rule in rules){
-            val (d,l,c) = rule.split(" ")
-            val dir = Direction.fromString(d)
-            val len = l.toInt()
-            // separate colorcode from parenthesis
-            val colour = c.substring(1,c.length-1)
-            // create unfoldd list of directions
-            dirList.addAll(List(len){dir})
-            ruleList.add(Rule(dir,len,colour))
-        }
-        path = dirListToPath(dirList)
-    }
-
-    fun count():Int{
-        var iterations = 0
-        fun isWall(pos:Pair<Int,Int>):Boolean{
-            return pos in path
-        }
-
-        fun visit(pos:Pair<Int,Int>){
-            innerTiles.add(pos)
-            iterations++
-//            if (iterations % 100 == 0) {
-//                draw(true)
-//            }
-        }
-        val startPos = firstInnerTile(path, dirList.first())
-        if(startPos != null) {
-            floodFill(1 to 1, ::isWall, ::visit)
-            tileCount = innerTiles.size + path.size - 1 // start pos is double counted
-        }
-        return  tileCount
-    }
-
-    fun draw(clear:Boolean = false){
-        // position cursor at top left if clear is true
-        if(clear){
-            print("\u001B[H\u001B[2J")
-        }
-        val maxX = path.maxByOrNull { it.first }!!.first
-        val maxY = path.maxByOrNull { it.second }!!.second
-        val minX = path.minByOrNull { it.first }!!.first
-        val minY = path.minByOrNull { it.second }!!.second
-        for(y in minY..maxY){
-            for(x in minX..maxX){
-                val pos = x to y
-                when (pos) {
-                    in path -> {
-                        print("#")
-                    }
-                    in innerTiles -> {
-                        // print in yellow color X
-                        print("\u001B[33mX\u001B[0m")
-                    }
-                    else -> {
-                        print(".")
-                    }
-                }
+data class DigPlan(val rules: List<String>) {
+    val ruleList = mutableListOf<Pair<Direction,Int>>()
+    var path = listOf<Pair<Int, Int>>()
+    fun parseRules(part2: Boolean = false) {
+        var dir:Direction
+        var len:Int
+        for ((i, rule) in rules.withIndex()) {
+            val (d, l, c) = rule.split(" ")
+            if (part2) {
+                val hexCount = c.substring(2, c.length - 2) // omit parenthesis, first hash sign and last digit
+                // hexCount is 5 hex digits, convert to decimal
+                len = hexCount.toInt(16)
+                val dirNum = c.substring(c.length - 2, c.length - 1).toInt()
+                dir = listOf(Direction.R, Direction.D, Direction.L, Direction.U)[dirNum]
+            } else {
+                dir = Direction.fromString(d)
+                len = l.toInt()
             }
-            println()
+            ruleList.add(Pair(dir, len))
         }
+        path = dirAndLenToPoints(ruleList, 0 to 0)
     }
 
+    fun boundaryLength(): Long {
+        return ruleList.fold(0L) { acc, p -> acc + p.second }
+    }
+    fun area(): Long {
+        // Path is already counter-clockwise, so we can use the polygonArea function
+        val boundaryLen = boundaryLength()
+        val area = shoelaceArea(path)
+        // the points are in the centre of the squares, so add half of the boundary points
+        // and 1 for total sum of corners (360 degree turn adding up all corners to 1 square)
+        return area + boundaryLen / 2 + 1
+    }
 }
 
-fun main(){
-    fun part1(input:List<String>, debug:Boolean = false):Int{
+fun main() {
+    fun part1(input: List<String>, debug: Boolean = false): Long {
         val plan = DigPlan(input)
         plan.parseRules()
-        plan.count()
-        plan.draw()
-        return plan.tileCount
+        val res = plan.area()
+        return res
     }
 
-    fun part2(input:List<String>, debug:Boolean = false):Int{
-        return input.size
+    fun part2(input: List<String>, debug: Boolean = false): Long {
+        val plan = DigPlan(input)
+        plan.parseRules(true)
+        val res = plan.area()
+        return res
     }
 
     val testInput = readInput("Day18_test")
     val input = readInput("Day18")
 
-    println("Day8:")
-    measureRun("Part1") {
-        val debug = false
-//        var res = part1(testInput,  debug)
-        var res = part1(input, debug)
-        println("Result: $res")
+    println("Day18:")
+    measureRun("Part1 Duration:") {
+        val debug = true
+//        val res = part1(testInput,  debug)
+        val res = part1(input, debug)
+        println("Part 1 Result: $res")
     }
-    measureRun("Part2") {
+    measureRun("Part2 Duration:") {
         val debug = false
-        var res = part2(testInput,  debug)
-//        var res = part1(input, debug)
-        println("Result: $res")
+//        val res = part2(testInput, debug)
+        val res = part2(input, debug)
+        println("Part2 Result: $res")
     }
 
 }

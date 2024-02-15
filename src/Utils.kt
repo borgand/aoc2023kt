@@ -3,10 +3,11 @@ import java.security.MessageDigest
 import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.math.abs
 
 enum class Direction(val step: Pair<Int, Int>){
-    U( 0 to -1),
-    D(0 to 1),
+    U( 0 to 1),
+    D(0 to -1),
     L(-1 to 0),
     R(1 to 0);
 
@@ -27,8 +28,8 @@ enum class Direction(val step: Pair<Int, Int>){
             R -> D
         }
     }
-    fun move(pos: Pair<Int,Int>):Pair<Int,Int>{
-        return Pair(pos.first + step.first, pos.second + step.second)
+    fun move(pos: Pair<Int,Int>, len:Int = 1):Pair<Int,Int>{
+        return Pair(pos.first + step.first*len, pos.second + step.second*len)
     }
 
     companion object {
@@ -46,6 +47,47 @@ enum class Direction(val step: Pair<Int, Int>){
 
 fun dirListToPath(dirList:List<Direction>, pos:Pair<Int,Int> = 0 to 0):List<Pair<Int,Int>>{
     return dirList.fold(listOf(pos)){acc, dir -> acc + dir.move(acc.last())}
+}
+
+fun dirAndLenToPoints(dirLens:List<Pair<Direction, Int>>, pos:Pair<Int,Int> = 0 to 0):List<Pair<Int,Int>>{
+    val out = mutableListOf<Pair<Int,Int>>()
+    out.add(pos)
+    var next = pos
+    for ((dir, len) in dirLens){
+        next = dir.move(next, len)
+        out.add(next)
+    }
+    return out
+}
+
+
+// Shoelace formula to calculate area of a polygon
+// assumes points are ordered counter-clockwise
+// NOTE: in grid coordinates with boundary, this omits the boundary points themselves
+fun shoelaceArea(points:List<Pair<Int,Int>>):Long{
+    var area = 0L
+    var s1 = 0L
+    var s2 = 0L
+    for(i in 0 until points.size - 1){
+        val p1 = points[i]
+        val p2 = points[(i+1) % points.size]
+//        s1 += p1.first.toLong() * p2.second.toLong()
+//        s2 += p1.second.toLong() * p2.first.toLong()
+        area += (p1.first.toLong() * p2.second.toLong()) - (p1.second.toLong() * p2.first.toLong())
+    }
+    // last point to first point
+//    val p1 = points[points.size - 1]
+//    val p2 = points[0]
+//    area += (p1.first * p2.second).toLong() - (p1.second * p2.first).toLong()
+    return abs(area) / 2L
+}
+
+// Pick's theorem for polygon (grid) area
+// A = I + B/2 - 1
+fun picksArea(points:List<Pair<Int,Int>>):Long{
+    val i = shoelaceArea(points)
+    val b = points.size
+    return i + b/2 - 1
 }
 
 // function to detect first inner tile in a path of Pair<Int,Int> in given Direction by walking
