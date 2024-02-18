@@ -5,11 +5,16 @@ import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.math.abs
 
-enum class Direction(val step: Pair<Int, Int>){
-    U( 0 to 1),
-    D(0 to -1),
-    L(-1 to 0),
-    R(1 to 0);
+data class Point(val x: Int, val y: Int)
+
+enum class CoordinateSystem{
+    CARTESIAN, SCREEN
+}
+enum class Direction(private val step: Point){
+    U(Point(0,1)),
+    D(Point(0,-1)),
+    L(Point(-1,0)),
+    R(Point(1,0));
 
     fun opposite():Direction{
         return when(this){
@@ -28,11 +33,33 @@ enum class Direction(val step: Pair<Int, Int>){
             R -> D
         }
     }
+
+    fun turnLeft():Direction{
+        return when(this){
+            U -> L
+            D -> R
+            L -> D
+            R -> U
+        }
+    }
+
     fun move(pos: Pair<Int,Int>, len:Int = 1):Pair<Int,Int>{
-        return Pair(pos.first + step.first*len, pos.second + step.second*len)
+        return Pair(pos.first + step.x * len, pos.second + step.y * len * yOrient())
+    }
+
+    fun move(pos: Point, len:Int = 1):Point{
+        return Point(pos.x + step.x * len, pos.y + step.y * len * yOrient())
     }
 
     companion object {
+        var coordinateSystem = CoordinateSystem.CARTESIAN
+
+        fun yOrient():Int{
+            return when(coordinateSystem){
+                CoordinateSystem.CARTESIAN -> 1
+                CoordinateSystem.SCREEN -> -1
+            }
+        }
         fun fromString(s:String):Direction{
             return when(s){
                 "U" -> U
